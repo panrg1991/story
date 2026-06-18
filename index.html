@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备状态监控系统</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="logo-icon">&#9881;</span>
+      设备监控平台
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" data-page="home">&#9643; 首页</button>
+      <button class="nav-link" data-page="thermal">&#128293; 热成像</button>
+      <button class="nav-link" data-page="recipe">&#128736; 模具配方</button>
+      <button class="nav-link" data-page="pipeline">&#128679; 管路</button>
+      <button class="nav-link" data-page="andon">&#9711; 安灯呼叫</button>
+      <button class="nav-link" data-page="process">&#9670; 工艺数据</button>
+      <button class="nav-link" data-page="analysis">&#9650; 数据分析</button>
+    </div>
+    <div class="nav-right">
+      <span class="nav-time" id="currentTime"></span>
+    </div>
+  </nav>
+
+  <!-- 主内容 -->
+  <main class="main-content">
+
+    <!-- ==================== 首页 - 设备状态监控 ==================== -->
+    <section id="home" class="page active">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">设备状态监控</h1>
+        <button class="refresh-btn" onclick="location.reload()">&#8635; 查看历史数据</button>
+      </div>
+
+      <!-- 统计栏 -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-icon total">&#9878;</div>
+          <div class="stat-info"><div class="stat-num">8</div><div class="stat-label">设备总数</div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon running">&#10003;</div>
+          <div class="stat-info"><div class="stat-num">2</div><div class="stat-label">正常运行</div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon warning">&#9888;</div>
+          <div class="stat-info"><div class="stat-num">2</div><div class="stat-label">警告状态</div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon error">&#10007;</div>
+          <div class="stat-info"><div class="stat-num">4</div><div class="stat-label">故障/停机</div></div>
+        </div>
+      </div>
+
+      <!-- 设备卡片网格 -->
+      <div class="device-grid">
+        <!-- 红外钳机 -->
+        <div class="device-card error clickable" onclick="showDeviceAlarm('红外钳机')" title="点击查看报警详情">
+          <div class="device-name">红外钳机状态</div>
+          <div class="status-badge error">
+            <span class="status-icon error"></span> 缺料报警
+          </div>
+          <div class="device-detail">权 监超时配区</div>
+        </div>
+        <!-- 压铸机 -->
+        <div class="device-card running clickable" onclick="showDeviceAlarm('压铸机')" title="点击查看报警详情">
+          <div class="device-name">压铸机状态</div>
+          <div class="status-badge running">
+            <span class="status-icon running"></span> 正常
+          </div>
+          <div class="device-detail">--</div>
+        </div>
+        <!-- 真空机 -->
+        <div class="device-card warning clickable" onclick="showDeviceAlarm('真空机')" title="点击查看报警详情">
+          <div class="device-name">真空机状态</div>
+          <div class="status-badge warning">
+            <span class="status-icon warning"></span> 非空压力异常
+          </div>
+          <div class="device-detail">D灯归压力异常</div>
+        </div>
+        <!-- 喷雾机 -->
+        <div class="device-card error clickable" onclick="showDeviceAlarm('喷雾机')" title="点击查看报警详情">
+          <div class="device-name">喷雾机状态</div>
+          <div class="status-badge error">
+            <span class="status-icon error"></span> 喷涂模块异常
+          </div>
+          <div class="device-detail">喷涂模块异常</div>
+        </div>
+        <!-- 抽芯机 -->
+        <div class="device-card error clickable" onclick="showDeviceAlarm('抽芯机')" title="点击查看报警详情">
+          <div class="device-name">抽芯机状态</div>
+          <div class="status-badge error">
+            <span class="status-icon error"></span> 故障停机
+          </div>
+          <div class="device-detail">C602单元常状状态异常</div>
+        </div>
+        <!-- 求温机 -->
+        <div class="device-card error clickable" onclick="showDeviceAlarm('求温机')" title="点击查看报警详情">
+          <div class="device-name">求温机状态</div>
+          <div class="status-badge error">
+            <span class="status-icon error"></span> 过载停机
+          </div>
+          <div class="device-detail">C602过温异常</div>
+        </div>
+        <!-- 取件机 -->
+        <div class="device-card warning clickable" onclick="showDeviceAlarm('取件机')" title="点击查看报警详情">
+          <div class="device-name">取件机状态</div>
+          <div class="status-badge warning">
+            <span class="status-icon warning"></span> 正常异响
+          </div>
+          <div class="device-detail">xx通道异常</div>
+        </div>
+        <!-- 点冷机 -->
+        <div class="device-card running clickable" onclick="showDeviceAlarm('点冷机')" title="点击查看报警详情">
+          <div class="device-name">点冷机状态</div>
+          <div class="status-badge running">
+            <span class="status-icon running"></span> 正常开机
+          </div>
+          <div class="device-detail">xx温度正常</div>
+        </div>
+      </div>
+
+      <div class="alarm-detail-panel" id="alarmDetailPanel" style="display:none;">
+        <div class="alarm-detail-header">
+          <div>
+            <h2 id="alarmDetailTitle">设备报警详情</h2>
+            <p id="alarmDetailSubtitle">点击任意设备卡片，查看该设备最近报警信息。</p>
+          </div>
+          <button class="btn-close-alarm" onclick="closeAlarmPanel()">关闭</button>
+        </div>
+        <div class="alarm-detail-content" id="alarmDetailContent"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 红外热成像模块 ==================== -->
+    <section id="thermal" class="page">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">红外热成像</h1>
+      </div>
+      <div class="thermal-module">
+        <div class="thermal-card">
+          <div class="module-title">红外线热成像图</div>
+          <img class="thermal-image" src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 480'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ff4d4f'/%3E%3Cstop offset='50%25' stop-color='%23ffec3d'/%3E%3Cstop offset='100%25' stop-color='%233b8cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='640' height='480' fill='url(%23g)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%23ffffff' font-family='Segoe UI, sans-serif'%3E热成像图%3C/text%3E%3C/svg%3E" alt="红外线热成像图">
+        </div>
+        <div class="thermal-card thermal-temperature-panel">
+          <div class="module-title">20个点位温度值</div>
+          <div class="temperature-grid">
+            <div class="temp-point"><span class="point-name">点位01</span><span class="point-value">72.3℃</span></div>
+            <div class="temp-point"><span class="point-name">点位02</span><span class="point-value">70.1℃</span></div>
+            <div class="temp-point"><span class="point-name">点位03</span><span class="point-value">68.9℃</span></div>
+            <div class="temp-point"><span class="point-name">点位04</span><span class="point-value">69.6℃</span></div>
+            <div class="temp-point"><span class="point-name">点位05</span><span class="point-value">73.2℃</span></div>
+            <div class="temp-point"><span class="point-name">点位06</span><span class="point-value">71.5℃</span></div>
+            <div class="temp-point"><span class="point-name">点位07</span><span class="point-value">74.0℃</span></div>
+            <div class="temp-point"><span class="point-name">点位08</span><span class="point-value">72.8℃</span></div>
+            <div class="temp-point"><span class="point-name">点位09</span><span class="point-value">69.9℃</span></div>
+            <div class="temp-point"><span class="point-name">点位10</span><span class="point-value">70.4℃</span></div>
+            <div class="temp-point"><span class="point-name">点位11</span><span class="point-value">71.9℃</span></div>
+            <div class="temp-point"><span class="point-name">点位12</span><span class="point-value">68.7℃</span></div>
+            <div class="temp-point"><span class="point-name">点位13</span><span class="point-value">73.5℃</span></div>
+            <div class="temp-point"><span class="point-name">点位14</span><span class="point-value">75.1℃</span></div>
+            <div class="temp-point"><span class="point-name">点位15</span><span class="point-value">70.8℃</span></div>
+            <div class="temp-point"><span class="point-name">点位16</span><span class="point-value">69.3℃</span></div>
+            <div class="temp-point"><span class="point-name">点位17</span><span class="point-value">72.0℃</span></div>
+            <div class="temp-point"><span class="point-name">点位18</span><span class="point-value">71.1℃</span></div>
+            <div class="temp-point"><span class="point-name">点位19</span><span class="point-value">74.4℃</span></div>
+            <div class="temp-point"><span class="point-name">点位20</span><span class="point-value">70.6℃</span></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== 模具配方模块 ==================== -->
+    <section id="recipe" class="page">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">模具配方选择</h1>
+      </div>
+      <div class="recipe-module">
+        <div class="module-title">模具配方选择</div>
+        <div class="recipe-search-form">
+          <div class="recipe-field">
+            <label for="recipeProduct">产品名称</label>
+            <input type="text" id="recipeProduct" placeholder="输入产品名称">
+          </div>
+          <div class="recipe-field">
+            <label for="recipeMold">模具名称</label>
+            <input type="text" id="recipeMold" placeholder="输入模具名称">
+          </div>
+          <div class="recipe-field">
+            <label for="recipeLine">产线</label>
+            <input type="text" id="recipeLine" placeholder="输入产线">
+          </div>
+          <div class="recipe-actions">
+            <button class="btn-search" onclick="searchMoldRecipe()">搜索</button>
+            <button class="btn-reset" onclick="resetMoldRecipeFilter()">重置</button>
+          </div>
+        </div>
+        <div class="recipe-result" id="recipeResult">
+          <div class="recipe-empty">
+            <div class="recipe-info-title">模具配方参考值</div>
+            <table class="recipe-info-table">
+              <tbody>
+                <tr><td>一快选择</td><td>否</td><td>一快设定位置</td><td>0</td><td>一快油阀开度</td><td>0</td></tr>
+                <tr><td>二快选择</td><td>否</td><td>二快设定位置</td><td>0</td><td>二快油阀开度</td><td>0</td></tr>
+                <tr><td>增压选择</td><td>0</td><td>增压设定位置</td><td>0</td><td>增压触发压力</td><td>0</td></tr>
+                <tr><td>跟踪结束位置</td><td>0</td><td>快速储能压力</td><td>0</td><td>增压储能压力</td><td>0</td></tr>
+                <tr><td>压射时间</td><td>0</td><td>增压延时</td><td>0</td><td>冷却时间</td><td>0</td></tr>
+                <tr><td>回锤延时</td><td>0</td><td>慢速系统流量</td><td>0</td><td></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 管路数据展示模块 ==================== -->
+    <section id="pipeline" class="page">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">管路数据展示</h1>
+      </div>
+      <div class="pipeline-module">
+        <div class="pipeline-left">
+          <h2>当前管路配方数据</h2>
+          <table class="pipeline-current-table">
+            <thead>
+              <tr>
+                <th>参数名称</th>
+                <th>当前值</th>
+                <th>单位</th>
+              </tr>
+            </thead>
+            <tbody id="pipelineCurrentData">
+              <!-- 动态填充 -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pipeline-right">
+          <h2>参数编辑</h2>
+          <form class="pipeline-edit-form" id="pipelineEditForm">
+            <div class="form-group">
+              <label for="pressureSet">压力设定</label>
+              <input type="number" id="pressureSet" step="0.1" placeholder="输入压力值">
+            </div>
+            <div class="form-group">
+              <label for="tempSet">温度设定</label>
+              <input type="number" id="tempSet" step="0.1" placeholder="输入温度值">
+            </div>
+            <div class="form-group">
+              <label for="flowSet">流量设定</label>
+              <input type="number" id="flowSet" step="0.1" placeholder="输入流量值">
+            </div>
+            <div class="form-group">
+              <label for="valveOpen">阀门开度</label>
+              <input type="number" id="valveOpen" min="0" max="100" step="1" placeholder="输入开度百分比">
+            </div>
+            <button type="button" class="btn-submit" onclick="updatePipelineData()">一键下发</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 安灯呼叫系统 ==================== -->
+    <section id="andon" class="page">
+      <div class="andon-container">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">安灯呼叫系统</h1>
+        </div>
+
+        <!-- 快捷呼叫按钮 -->
+        <div class="andon-grid">
+          <div class="andon-btn btn-type-quality" onclick="triggerCall('质量异常')">
+            <span class="btn-icon">&#9888;</span>
+            <span class="btn-text">质量异常呼叫</span>
+            <span class="btn-desc">Quality Issue (8)</span>
+          </div>
+          <div class="andon-btn btn-type-device" onclick="triggerCall('设备故障')">
+            <span class="btn-icon">&#128295;</span>
+            <span class="btn-text">设备故障呼叫</span>
+            <span class="btn-desc">Device Failure</span>
+          </div>
+          <div class="andon-btn btn-type-material" onclick="triggerCall('物料短缺')">
+            <span class="btn-icon">&#128230;</span>
+            <span class="btn-text">物料短缺呼叫</span>
+            <span class="btn-desc">Material Shortage</span>
+          </div>
+          <div class="andon-btn btn-type-safety" onclick="triggerCall('安全告警')">
+            <span class="btn-icon">&#128737;</span>
+            <span class="btn-text">安全告警呼叫</span>
+            <span class="btn-desc">Safety Alert (9)</span>
+          </div>
+          <div class="andon-btn btn-type-tool" onclick="triggerCall('模具异常')">
+            <span class="btn-icon">&#127978;</span>
+            <span class="btn-text">工艺参数异常</span>
+            <span class="btn-desc">Process Parameter (6)</span>
+          </div>
+          <div class="andon-btn btn-type-other" onclick="triggerCall('工装辅助')">
+            <span class="btn-icon">&#128296;</span>
+            <span class="btn-text">实时工装辅助</span>
+            <span class="btn-desc">Tooling Assist (5)</span>
+          </div>
+          <div class="andon-btn btn-type-other" onclick="triggerCall('调取历史')">
+            <span class="btn-icon">&#128196;</span>
+            <span class="btn-text">调取历史工艺参数配置</span>
+            <span class="btn-desc">History Config (10)</span>
+          </div>
+          <div class="andon-btn btn-type-custom" onclick="triggerCall('一键登录')">
+            <span class="btn-icon">&#128274;</span>
+            <span class="btn-text">遗留配置方信息展示模块及 一键登功能</span>
+            <span class="btn-desc">One-click Login (7)</span>
+          </div>
+        </div>
+
+        <!-- 自定义输入呼叫 -->
+        <div class="custom-call-section">
+          <h3>&#9999; 自定义呼叫</h3>
+          <div class="custom-input-row">
+            <input type="text" id="customCallType" placeholder="输入呼叫类型（如：维修请求、技术支持等）">
+            <input type="text" id="customCallDetail" placeholder="输入详细描述信息">
+            <button class="btn-submit-custom" onclick="submitCustomCall()">发起呼叫</button>
+          </div>
+        </div>
+
+        <!-- 呼叫记录 -->
+        <div class="call-records">
+          <h3>&#128203; 呼叫记录列表</h3>
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th>序号</th><th>呼叫类型</th><th>详细描述</th><th>呼叫人</th><th>呼叫时间</th><th>状态</th><th>处理人</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td><td>质量异常</td><td>压铸件表面气孔超标，需停线检查</td><td>张工</td><td>2026-05-13 08:23:15</td>
+                <td><span class="record-status completed">&#10003; 已完成</span></td><td>李质检</td>
+              </tr>
+              <tr>
+                <td>2</td><td>设备故障</td><td>C602单元常状状态异常，需要维修</td><td>王操作</td><td>2026-05-13 09:10:42</td>
+                <td><span class="record-status processing">&#9883; 处理中</span></td><td>赵维修</td>
+              </tr>
+              <tr>
+                <td>3</td><td>物料短缺</td><td>铝锭库存不足，需紧急补料</td><td>陈班长</td><td>2026-05-13 09:45:30</td>
+                <td><span class="record-status pending">&#9888; 待响应</span></td><td>--</td>
+              </tr>
+              <tr>
+                <td>4</td><td>安全告警</td><td>3号压铸机区域烟雾传感器触发</td><td>系统自动</td><td>2026-05-13 10:02:18</td>
+                <td><span class="record-status processing">&#9883; 处理中</span></td><td>安保组</td>
+              </tr>
+              <tr>
+                <td>5</td><td>模具异常</td><td>红岛模次压铸工艺参数超差</td><td>刘技师</td><td>2026-05-13 10:30:55</td>
+                <td><span class="record-status pending">&#9888; 待响应</span></td><td>--</td>
+              </tr>
+              <tr>
+                <td>6</td><td>工装辅助</td><td>夹具定位销磨损需更换</td><td>孙操作</td><td>2026-05-13 11:15:22</td>
+                <td><span class="record-status completed">&#10003; 已完成</span></td><td>周工装</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 工艺数据模块 ==================== -->
+    <section id="process" class="page">
+      <div class="tech-data-container">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">工艺数据查询</h1>
+        </div>
+
+        <!-- 筛选条件栏 -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>设备编号</label>
+            <select id="filterDevice">
+              <option value="">全部设备</option>
+              <option value="YZJ-001">压铸机 YZJ-001</option>
+              <option value="ZKJ-002">真空机 ZKJ-002</option>
+              <option value="PWJ-003">喷雾机 PWJ-003</option>
+              <option value="CXJ-004">抽芯机 CXJ-004</option>
+              <option value="QJJ-005">取件机 QJJ-005</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>产品型号</label>
+            <select id="filterProduct">
+              <option value="">全部型号</option>
+              <option value="P3500T">有色压铸3500T</option>
+              <option value="P5000T">有色压铸5000T</option>
+              <option value="P2600T">有色压铸2600T</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>批次号</label>
+            <input type="text" id="filterBatch" placeholder="请输入批次号">
+          </div>
+          <div class="filter-group">
+            <label>开始时间</label>
+            <input type="datetime-local" id="filterStartTime">
+          </div>
+          <div class="filter-group">
+            <label>结束时间</label>
+            <input type="datetime-local" id="filterEndTime">
+          </div>
+          <div class="filter-group">
+            <label>数据状态</label>
+            <select id="filterStatus">
+              <option value="">全部</option>
+              <option value="normal">正常</option>
+              <option value="warning">预警</option>
+              <option value="abnormal">异常</option>
+            </select>
+          </div>
+          <button class="btn-search" onclick="searchProcessData()">&#128269; 查询</button>
+          <button class="btn-reset" onclick="resetProcessFilter()">&#8635; 重置</button>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="data-table-wrapper">
+          <div class="data-toolbar">
+            <span>共 <b>156</b> 条记录</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>采集时间</th>
+                <th>设备编号</th>
+                <th>产品型号</th>
+                <th>批次号</th>
+                <th>慢压射速度<br>(m/s)</th>
+                <th>快压射速度<br>(m/s)</th>
+                <th>铸造压力<br>(MPa)</th>
+                <th>增压压力<br>(MPa)</th>
+                <th>浇注温度<br>(&#8451;)</th>
+                <th>模具温度<br>(&#8451;)</th>
+                <th>循环周期<br>(s)</th>
+                <th>保压时间<br>(s)</th>
+                <th>数据状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td><td>2026-05-13 14:32:15</td><td>YZJ-001</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.18</td><td>2.85</td><td>85.3</td><td>92.1</td><td>680</td><td>245</td><td>58.2</td><td>12.5</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>2</td><td>2026-05-13 14:31:48</td><td>YZJ-001</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.19</td><td>2.82</td><td>84.8</td><td>91.5</td><td>682</td><td>246</td><td>57.9</td><td>12.3</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>3</td><td>2026-05-13 14:31:20</td><td>ZKJ-002</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.17</td><td>2.90</td><td>86.1</td><td>93.2</td><td>678</td><td>243</td><td>58.5</td><td>12.8</td>
+                <td><span style="color:#faad14;font-weight:600;">&#9888; 预警</span></td>
+              </tr>
+              <tr>
+                <td>4</td><td>2026-05-13 14:30:55</td><td>YZJ-001</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.21</td><td>2.75</td><td>83.2</td><td>89.8</td><td>675</td><td>240</td><td>59.1</td><td>13.0</td>
+                <td><span style="color:#ff4d4f;font-weight:600;">&#10007; 异常</span></td>
+              </tr>
+              <tr>
+                <td>5</td><td>2026-05-13 14:30:28</td><td>PWJ-003</td><td>P5000T</td><td>B20260513002</td>
+                <td>0.20</td><td>3.15</td><td>92.5</td><td>101.2</td><td>700</td><td>258</td><td>62.3</td><td>14.2</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>6</td><td>2026-05-13 14:29:50</td><td>CXJ-004</td><td>P2600T</td><td>B20260513003</td>
+                <td>0.16</td><td>2.50</td><td>78.5</td><td>84.2</td><td>650</td><td>232</td><td>52.8</td><td>10.5</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>7</td><td>2026-05-13 14:29:12</td><td>QJJ-005</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.18</td><td>2.88</td><td>85.0</td><td>91.8</td><td>681</td><td>244</td><td>58.0</td><td>12.6</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>8</td><td>2026-05-13 14:28:35</td><td>YZJ-001</td><td>P3500T</td><td>B20260513001</td>
+                <td>0.19</td><td>2.83</td><td>85.5</td><td>92.5</td><td>679</td><td>245</td><td>57.8</td><td>12.4</td>
+                <td><span style="color:#52c41a;font-weight:600;">&#10003; 正常</span></td>
+              </tr>
+              <tr>
+                <td>9</td><td>2026-05-13 14:28:00</td><td>ZKJ-002</td><td>P5000T</td><td>B20260513002</td>
+                <td>0.22</td><td>3.20</td><td>93.0</td><td>102.5</td><td>702</td><td>260</td><td>63.0</td><td>14.5</td>
+                <td><span style="color:#faad14;font-weight:600;">&#9888; 预警</span></td>
+              </tr>
+              <tr>
+                <td>10</td><td>2026-05-13 14:27:22</td><td>PWJ-003</td><td>P2600T</td><td>B20260513004</td>
+                <td>0.15</td><td>2.40</td><td>76.8</td><td>82.5</td><td>645</td><td>228</td><td>51.5</td><td>10.0</td>
+                <td><span style="color:#ff4d4f;font-weight:600;">&#10007; 异常</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <span class="pagination-info">显示 1-10 / 共 156 条</span>
+            <div class="pagination-btns">
+              <button class="page-btn">&laquo;</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">...</button>
+              <button class="page-btn">16</button>
+              <button class="page-btn">&raquo;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 历史工件数据分析 ==================== -->
+    <section id="analysis" class="page">
+      <div class="analysis-container">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">历史工件数据分析</h1>
+        </div>
+
+        <div class="analysis-layout">
+          <!-- 标准数据面板 -->
+          <div class="standard-panel">
+            <div class="standard-header">
+              <h3>&#128200; 标准工艺参数</h3>
+              <span class="badge-standard">STANDARD</span>
+            </div>
+            <div class="standard-body">
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">慢压射速度 (m/s)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div>
+                  <div class="std-value">0.18 &plusmn; 0.03</div>
+                </div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">快压射速度 (m/s)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">2.85 &plusmn; 0.15</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">铸造压力 (MPa)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">85.0 &plusmn; 3.0</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">增压压力 (MPa)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">92.0 &plusmn; 4.0</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">浇注温度 (&#8451;)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">680 &plusmn; 15</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">模具温度 (&#8451;)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">245 &plusmn; 10</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">循环周期 (s)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">58.0 &plusmn; 3.0</div></div>
+              </div>
+              <div class="standard-item">
+                <div>
+                  <div class="std-label">保压时间 (s)</div>
+                  <div class="std-range">标准值 &plusmn; 允许误差</div>
+                </div>
+                <div><div class="std-value">12.5 &plusmn; 1.0</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 对比数据面板 -->
+          <div class="compare-panel">
+            <div class="compare-header">
+              <h3>&#128202; 历史数据对比分析</h3>
+              <div class="compare-filters">
+                <input type="text" placeholder="搜索工件编号/批号" id="searchWorkpiece">
+                <select id="compareDevice" style="background:rgba(255,255,255,0.05);border:1px solid var(--border-color);border-radius:6px;padding:6px 10px;color:var(--text-primary);font-size:12px;">
+                  <option value="">全部设备</option>
+                  <option value="YZJ-001">YZJ-001</option>
+                  <option value="ZKJ-002">ZKJ-002</option>
+                </select>
+                <button class="btn-search" onclick="searchCompareData()" style="height:34px;padding:6px 18px;font-size:12px;">&#128269; 查询</button>
+              </div>
+            </div>
+            <div class="compare-table-wrap">
+              <table class="compare-table">
+                <thead>
+                  <tr>
+                    <th>序号</th>
+                    <th>工件编号</th>
+                    <th>采集时间</th>
+                    <th>设备</th>
+                    <th>慢压射<br>(m/s)</th>
+                    <th>快压射<br>(m/s)</th>
+                    <th>铸造压力<br>(MPa)</th>
+                    <th>增压压力<br>(MPa)</th>
+                    <th>浇注温度<br>(&#8451;)</th>
+                    <th>模具温度<br>(&#8451;)</th>
+                    <th>循环周期<br>(s)</th>
+                    <th>保压时间<br>(s)</th>
+                    <th>判定结果</th>
+                  </tr>
+                </thead>
+                <tbody id="compareTableBody">
+                  <tr>
+                    <td>1</td><td>WJ202605130001</td><td>2026-05-13 14:32:15</td><td>YZJ-001</td>
+                    <td class="cell-in-range">0.18<span class="diff-value">+0.00</span></td>
+                    <td class="cell-in-range">2.85<span class="diff-value">+0.00</span></td>
+                    <td class="cell-in-range">85.3<span class="diff-value">+0.3</span></td>
+                    <td class="cell-in-range">92.1<span class="diff-value">+0.1</span></td>
+                    <td class="cell-in-range">680<span class="diff-value">+0</span></td>
+                    <td class="cell-in-range">245<span class="diff-value">+0</span></td>
+                    <td class="cell-in-range">58.2<span class="diff-value">+0.2</span></td>
+                    <td class="cell-in-range">12.5<span class="diff-value">+0.0</span></td>
+                    <td><span style="color:#52c41a;font-weight:600;">&#10003; 合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>2</td><td>WJ202605130002</td><td>2026-05-13 14:31:48</td><td>YZJ-001</td>
+                    <td class="cell-warning">0.21<span class="diff-value" style="color:#faad14;">+0.03</span></td>
+                    <td class="cell-in-range">2.82<span class="diff-value">-0.03</span></td>
+                    <td class="cell-in-range">84.8<span class="diff-value">-0.2</span></td>
+                    <td class="cell-in-range">91.5<span class="diff-value">-0.5</span></td>
+                    <td class="cell-in-range">682<span class="diff-value">+2</span></td>
+                    <td class="cell-in-range">246<span class="diff-value">+1</span></td>
+                    <td class="cell-in-range">57.9<span class="diff-value">-0.1</span></td>
+                    <td class="cell-in-range">12.3<span class="diff-value">-0.2</span></td>
+                    <td><span style="color:#faad14;font-weight:600;">&#9888; 预警</span></td>
+                  </tr>
+                  <tr>
+                    <td>3</td><td>WJ202605130003</td><td>2026-05-13 14:30:55</td><td>YZJ-001</td>
+                    <td class="cell-out-of-range">0.24<span class="diff-value" style="color:#ff787e;">+0.06 &#10007;</span></td>
+                    <td class="cell-out-of-range">2.55<span class="diff-value" style="color:#ff787e;">-0.30 &#10007;</span></td>
+                    <td class="cell-out-of-range">79.2<span class="diff-value" style="color:#ff787e;">-5.8 &#10007;</span></td>
+                    <td class="cell-out-of-range">85.5<span class="diff-value" style="color:#ff787e;">-6.5 &#10007;</span></td>
+                    <td class="cell-out-of-range">658<span class="diff-value" style="color:#ff787e;">-22 &#10007;</span></td>
+                    <td class="cell-warning">235<span class="diff-value" style="color:#faad14;">-10</span></td>
+                    <td class="cell-out-of-range">63.5<span class="diff-value" style="color:#ff787e;">+5.5 &#10007;</span></td>
+                    <td class="cell-out-of-range">14.0<span class="diff-value" style="color:#ff787e;">+1.5 &#10007;</span></td>
+                    <td><span style="color:#ff4d4f;font-weight:600;">&#10007; 不合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>4</td><td>WJ202605130004</td><td>2026-05-13 14:29:50</td><td>ZKJ-002</td>
+                    <td class="cell-in-range">0.17<span class="diff-value">-0.01</span></td>
+                    <td class="cell-in-range">2.90<span class="diff-value">+0.05</span></td>
+                    <td class="cell-in-range">86.1<span class="diff-value">+1.1</span></td>
+                    <td class="cell-in-range">93.2<span class="diff-value">+1.2</span></td>
+                    <td class="cell-warning">668<span class="diff-value" style="color:#faad14;">-12</span></td>
+                    <td class="cell-in-range">243<span class="diff-value">-2</span></td>
+                    <td class="cell-in-range">58.5<span class="diff-value">+0.5</span></td>
+                    <td class="cell-in-range">12.8<span class="diff-value">+0.3</span></td>
+                    <td><span style="color:#52c41a;font-weight:600;">&#10003; 合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>5</td><td>WJ202605130005</td><td>2026-05-13 14:28:35</td><td>YZJ-001</td>
+                    <td class="cell-in-range">0.19<span class="diff-value">+0.01</span></td>
+                    <td class="cell-in-range">2.83<span class="diff-value">-0.02</span></td>
+                    <td class="cell-in-range">85.5<span class="diff-value">+0.5</span></td>
+                    <td class="cell-in-range">92.5<span class="diff-value">+0.5</span></td>
+                    <td class="cell-in-range">681<span class="diff-value">+1</span></td>
+                    <td class="cell-in-range">244<span class="diff-value">-1</span></td>
+                    <td class="cell-in-range">57.8<span class="diff-value">-0.2</span></td>
+                    <td class="cell-in-range">12.4<span class="diff-value">-0.1</span></td>
+                    <td><span style="color:#52c41a;font-weight:600;">&#10003; 合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>6</td><td>WJ202605130006</td><td>2026-05-13 14:27:22</td><td>ZKJ-002</td>
+                    <td class="cell-out-of-range">0.13<span class="diff-value" style="color:#ff787e;">-0.05 &#10007;</span></td>
+                    <td class="cell-in-range">2.88<span class="diff-value">+0.03</span></td>
+                    <td class="cell-in-range">84.2<span class="diff-value">-0.8</span></td>
+                    <td class="cell-warning">87.8<span class="diff-value" style="color:#faad14;">-4.2</span></td>
+                    <td class="cell-out-of-range">695<span class="diff-value" style="color:#ff787e;">+15</span></td>
+                    <td class="cell-in-range">250<span class="diff-value">+5</span></td>
+                    <td class="cell-warning">61.2<span class="diff-value" style="color:#faad14;">+3.2</span></td>
+                    <td class="cell-out-of-range">14.0<span class="diff-value" style="color:#ff787e;">+1.5 &#10007;</span></td>
+                    <td><span style="color:#ff4d4f;font-weight:600;">&#10007; 不合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>7</td><td>WJ202605130007</td><td>2026-05-13 14:26:10</td><td>YZJ-001</td>
+                    <td class="cell-in-range">0.18<span class="diff-value">+0.00</span></td>
+                    <td class="cell-in-range">2.86<span class="diff-value">+0.01</span></td>
+                    <td class="cell-in-range">85.1<span class="diff-value">+0.1</span></td>
+                    <td class="cell-in-range">91.9<span class="diff-value">-0.1</span></td>
+                    <td class="cell-in-range">679<span class="diff-value">-1</span></td>
+                    <td class="cell-in-range">244<span class="diff-value">-1</span></td>
+                    <td class="cell-in-range">58.1<span class="diff-value">+0.1</span></td>
+                    <td class="cell-in-range">12.6<span class="diff-value">+0.1</span></td>
+                    <td><span style="color:#52c41a;font-weight:600;">&#10003; 合格</span></td>
+                  </tr>
+                  <tr>
+                    <td>8</td><td>WJ202605130008</td><td>2026-05-13 14:24:55</td><td>ZKJ-002</td>
+                    <td class="cell-in-range">0.19<span class="diff-value">+0.01</span></td>
+                    <td class="cell-warning">2.68<span class="diff-value" style="color:#faad14;">-0.17</span></td>
+                    <td class="cell-in-range">84.5<span class="diff-value">-0.5</span></td>
+                    <td class="cell-in-range">91.2<span class="diff-value">-0.8</span></td>
+                    <td class="cell-in-range">683<span class="diff-value">+3</span></td>
+                    <td class="cell-in-range">247<span class="diff-value">+2</span></td>
+                    <td class="cell-in-range">58.8<span class="diff-value">+0.8</span></td>
+                    <td class="cell-in-range">12.9<span class="diff-value">+0.4</span></td>
+                    <td><span style="color:#faad14;font-weight:600;">&#9888; 预警</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="legend-bar">
+              <div class="legend-item"><span class="legend-dot ok"></span> 范围内 (合格)</div>
+              <div class="legend-item"><span class="legend-dot warn"></span> 接近边界 (预警)</div>
+              <div class="legend-item"><span class="legend-dot err"></span> 超出范围 (不合格)</div>
+            </div>
+            <div class="pagination" style="border-top:none;">
+              <span class="pagination-info">显示 1-8 / 共 89 条记录 | 不合格率: 22.5%</span>
+              <div class="pagination-btns">
+                <button class="page-btn">&laquo;</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">...</button>
+                <button class="page-btn">12</button>
+                <button class="page-btn">&raquo;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
