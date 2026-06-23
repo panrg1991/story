@@ -58,16 +58,24 @@ function getDeviceOverview(req, res) {
   const stats = db.prepare(`
     SELECT
       COUNT(*) AS total,
-      SUM(CASE WHEN status='running' THEN 1 ELSE 0 END) AS running,
-      SUM(CASE WHEN status='warning' THEN 1 ELSE 0 END) AS warning,
-      SUM(CASE WHEN status='error'   THEN 1 ELSE 0 END) AS error
-    FROM device_status
+      SUM(CASE WHEN latest_status='running' THEN 1 ELSE 0 END) AS running,
+      SUM(CASE WHEN latest_status='warning' THEN 1 ELSE 0 END) AS warning,
+      SUM(CASE WHEN latest_status='error'   THEN 1 ELSE 0 END) AS error
+    FROM (
+      SELECT ds.status AS latest_status
+      FROM devices d
+      LEFT JOIN device_status ds ON ds.id = (
+        SELECT id FROM device_status WHERE device_id = d.id ORDER BY updated_at DESC LIMIT 1
+      )
+    )
   `).get();
 
   const devices = db.prepare(`
     SELECT d.id, d.device_name, d.device_code, ds.status, ds.alarm_info, ds.detail_info
     FROM devices d
-    LEFT JOIN device_status ds ON ds.device_id = d.id
+    LEFT JOIN device_status ds ON ds.id = (
+      SELECT id FROM device_status WHERE device_id = d.id ORDER BY updated_at DESC LIMIT 1
+    )
     ORDER BY d.id
   `).all();
 
